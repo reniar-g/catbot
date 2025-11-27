@@ -390,25 +390,72 @@ class RAIHybridCat(Cat):
             self.pos[1] = new_c
 
 class AARMirrorCat(Cat):
-    """Mirrors player movement with 20% chance of staying still."""
+    """Adaptive mirror cat that counters player movement and evades when too close."""
 
     def _get_sprite_path(self) -> str:
         return "images/trainer-dp.png"
     
     def move(self) -> None:
-        if self.last_player_action is None:
-            return
+        # Initialize tracking
+        if not hasattr(self, 'move_history'):
+            self.move_history = []
         
-        if random.random() < 0.2:
-            return
+        # Track player actions
+        if self.last_player_action is not None:
+            self.move_history.append(self.last_player_action)
+            if len(self.move_history) > 6:
+                self.move_history.pop(0)
         
+        current_distance = abs(self.pos[0] - self.player_pos[0]) + abs(self.pos[1] - self.player_pos[1])
+        
+        # Action mappings
         action_map = {0: (-1, 0), 1: (1, 0), 2: (0, -1), 3: (0, 1)}
-        if self.last_player_action in action_map:
-            dr, dc = action_map[self.last_player_action]
-            new_r = min(max(0, self.pos[0] + dr), self.grid_size - 1)
-            new_c = min(max(0, self.pos[1] + dc), self.grid_size - 1)
-            self.pos[0] = new_r
-            self.pos[1] = new_c
+        opposite_map = {0: 1, 1: 0, 2: 3, 3: 2}  # Up<->Down, Left<->Right
+        possible_moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        # Priority 1: If adjacent, always evade to maximize distance
+        if current_distance <= 1:
+            best_move = max(possible_moves, key=lambda m: 
+                abs(min(max(0, self.pos[0] + m[0]), self.grid_size - 1) - self.player_pos[0]) + 
+                abs(min(max(0, self.pos[1] + m[1]), self.grid_size - 1) - self.player_pos[1]))
+            self.pos[0] = min(max(0, self.pos[0] + best_move[0]), self.grid_size - 1)
+            self.pos[1] = min(max(0, self.pos[1] + best_move[1]), self.grid_size - 1)
+            return
+        
+        # Priority 2: If close (distance 2-3), use counter-movement (opposite of player)
+        if current_distance <= 3 and self.last_player_action is not None:
+            # 70% counter, 30% evade
+            if random.random() < 0.7:
+                counter_action = opposite_map[self.last_player_action]
+                dr, dc = action_map[counter_action]
+            else:
+                best_move = max(possible_moves, key=lambda m: 
+                    abs(min(max(0, self.pos[0] + m[0]), self.grid_size - 1) - self.player_pos[0]) + 
+                    abs(min(max(0, self.pos[1] + m[1]), self.grid_size - 1) - self.player_pos[1]))
+                dr, dc = best_move
+            self.pos[0] = min(max(0, self.pos[0] + dr), self.grid_size - 1)
+            self.pos[1] = min(max(0, self.pos[1] + dc), self.grid_size - 1)
+            return
+        
+        # Priority 3: If far, predict player's pattern and pre-evade
+        if len(self.move_history) >= 3:
+            # Find most common recent direction
+            most_common = max(set(self.move_history[-3:]), key=self.move_history[-3:].count)
+            # Move opposite to predicted player direction
+            if random.random() < 0.6:
+                counter_action = opposite_map[most_common]
+                dr, dc = action_map[counter_action]
+                self.pos[0] = min(max(0, self.pos[0] + dr), self.grid_size - 1)
+                self.pos[1] = min(max(0, self.pos[1] + dc), self.grid_size - 1)
+                return
+        
+        # Fallback: 30% stay still, 70% random move
+        if random.random() < 0.3:
+            return
+        
+        d = random.choice(possible_moves)
+        self.pos[0] = min(max(0, self.pos[0] + d[0]), self.grid_size - 1)
+        self.pos[1] = min(max(0, self.pos[1] + d[1]), self.grid_size - 1)
 
 # Export custom cat types
 cat_types = {
