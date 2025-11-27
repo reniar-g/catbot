@@ -389,6 +389,26 @@ class RAIHybridCat(Cat):
             self.pos[0] = new_r
             self.pos[1] = new_c
 
+class AARMirrorCat(Cat):
+    """Mirrors player movement with 20% chance of staying still."""
+
+    def _get_sprite_path(self) -> str:
+        return "images/trainer-dp.png"
+    
+    def move(self) -> None:
+        if self.last_player_action is None:
+            return
+        
+        if random.random() < 0.2:
+            return
+        
+        action_map = {0: (-1, 0), 1: (1, 0), 2: (0, -1), 3: (0, 1)}
+        if self.last_player_action in action_map:
+            dr, dc = action_map[self.last_player_action]
+            new_r = min(max(0, self.pos[0] + dr), self.grid_size - 1)
+            new_c = min(max(0, self.pos[1] + dc), self.grid_size - 1)
+            self.pos[0] = new_r
+            self.pos[1] = new_c
 
 # Export custom cat types
 cat_types = {
@@ -397,5 +417,6 @@ cat_types = {
     "adaptive": RAIAdaptiveCat,
     "knight": RAIKnightCat,
     "chaos": RAIChaosCat,
-    "hybrid": RAIHybridCat
+    "hybrid": RAIHybridCat,
+    "mirror": AARMirrorCat
 }
