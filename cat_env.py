@@ -7,7 +7,6 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import pygame
-from customcats import cat_types as custom_cat_types
 
 class Cat(ABC):
     def __init__(self, grid_size: int, tile_size: int):
@@ -327,6 +326,7 @@ class CatChaseEnv(gym.Env):
             "trainer": TrainerCat
         }
         # Add custom cats from customcats.py
+        from customcats import cat_types as custom_cat_types
         cat_types.update(custom_cat_types)
         if cat_type not in cat_types:
             raise ValueError(f"Unknown cat type: {cat_type}. Available types: {list(cat_types.keys())}")
