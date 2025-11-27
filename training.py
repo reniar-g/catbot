@@ -9,21 +9,18 @@ from cat_env import make_env
 # TODO: YOU MAY ADD ADDITIONAL IMPORTS OR FUNCTIONS HERE.                   #
 #############################################################################
 
+# Helper function to compute Manhattan distance between bot and cat
+def compute_dist(state):
+    # State encoding: agent_row * 1000 + agent_col * 100 + cat_row * 10 + cat_col
+    bot_r = state // 1000
+    bot_c = (state % 1000) // 100
+    cat_r = (state % 100) // 10
+    cat_c = state % 10
+    return abs(bot_r - cat_r) + abs(bot_c - cat_c)
+
 #############################################################################
 # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
 #############################################################################
-
-# Helper function to compute reward when the bot is near the cat
-def compute_dist(state):
-    # State rep: first 2 digits are the row and col of the bot
-    # last 2 digits are row and col of the cat
-    s = str(state).zfill(4)
-    bot_r = int(s[0])
-    bot_c = int(s[1])
-    cat_r = int(s[2])
-    cat_c = int(s[3])
-    # return the manhattan distance
-    return abs(bot_r - cat_r) + abs(bot_c - cat_c)
 
 def train_bot(cat_name, render: int = -1):
     env = make_env(cat_type=cat_name)
@@ -36,7 +33,14 @@ def train_bot(cat_name, render: int = -1):
 
     # Training hyperparameters
     episodes = 5000 # Training is capped at 5000 episodes for this project
-
+    
+    #############################################################################
+    # TODO: YOU MAY DECLARE OTHER VARIABLES AND PERFORM INITIALIZATIONS HERE.   #
+    #############################################################################
+    # Hint: You may want to declare variables for the hyperparameters of the    #
+    # training process such as learning rate, exploration rate, etc.            #
+    #############################################################################
+    
     alpha = 0.1 # How fast to learn (higher = faster but less stable)
     gamma = 0.9 # Discount factor
     epsilon = 1.0 # Start with 100% random actions
@@ -93,7 +97,7 @@ def train_bot(cat_name, render: int = -1):
 
         # Update epsilon
         epsilon = max(epsilon * epsilon_decay, epsilon_min)
-        
+
         #############################################################################
         # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
         #############################################################################
