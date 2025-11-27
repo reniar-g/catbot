@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Train and play Cat Chase bot')
     parser.add_argument('--cat',
                         choices=['mittens', 'batmeow', 'paotsin', 'peekaboo', 'squiddyboi', 'trainer',
-                                 'patrol', 'diagonal', 'adaptive', 'phases', 'chaos', 'hybrid'],
+                                 'patrol', 'diagonal', 'adaptive', 'phases', 'chaos', 'hybrid', 'mirror'],
                         default='batmeow',
                        help='Type of cat to train against (default: batmeow)')
     parser.add_argument('--render', 
