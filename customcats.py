@@ -152,7 +152,7 @@ class RAIAdaptiveCat(Cat):
         self.pos[1] = min(max(0, self.pos[1] + best_move[1]), self.grid_size - 1)
 
 
-class RAIKnightCat(Cat):
+class RAIPhasedCat(Cat):
     """Distance maximizer with predictable phase cycling and occasional diagonal moves."""
 
     def _get_sprite_path(self) -> str:
@@ -415,7 +415,7 @@ cat_types = {
     "patrol": KANPatrolCat,
     "diagonal": KANDiagonalCat,
     "adaptive": RAIAdaptiveCat,
-    "knight": RAIKnightCat,
+    "phased": RAIPhasedCat,
     "chaos": RAIChaosCat,
     "hybrid": RAIHybridCat,
     "mirror": AARMirrorCat

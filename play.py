@@ -6,7 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Play CatBot environment in freeplay mode.')
     parser.add_argument('--cat', 
                       choices=['mittens', 'batmeow', 'paotsin', 'peekaboo', 'squiddyboi', 'trainer',
-                               'patrol', 'diagonal', 'adaptive', 'phases', 'chaos', 'hybrid', 'mirror'],
+                               'patrol', 'diagonal', 'adaptive', 'phased', 'chaos', 'hybrid', 'mirror'],
                       default='batmeow',
                       help='Type of cat to play against (default: batmeow)')
     
