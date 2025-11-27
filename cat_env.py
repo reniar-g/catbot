@@ -376,6 +376,29 @@ class KANDiagonalCat(Cat):
         self.pos[0] = min(max(0, self.pos[0] + dr), self.grid_size - 1)
         self.pos[1] = min(max(0, self.pos[1] + dc), self.grid_size - 1)
 
+    class MirrorCat(Cat):
+        """Mirrors player movement but has 30% chance of staying still"""
+
+        def _get_sprite_path(self) -> str:
+            return "images/trainer-dp.png"
+        
+        def move(self) -> None:
+            if self.last_player_action is None:
+                return
+        
+            curr_distance = abs(self.pos[0] - self.player_pos[0]) + abs(self.pos[1] - self.player_pos[1])
+
+            if random.random() > 0.80:
+                return; # Mirror dudette stays still
+
+            if self.last_player_action == 4:
+                dr, dc = action_map[self.last_player_action]
+                new_r = min(max(0, self.pos[0] + dr), self.grid_size - 1)
+                new_c = min(max(0, self.pos[1] + dc), self.grid_size - 1)
+                self.pos[0] = new_r
+                self.pos[1] = new_c
+
+
 #######################################
 # END OF CAT BEHAVIOR IMPLEMENTATIONS #
 #######################################
