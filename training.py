@@ -41,11 +41,19 @@ def train_bot(cat_name, render: int = -1):
     # training process such as learning rate, exploration rate, etc.            #
     #############################################################################
     
-    alpha = 0.1 # How fast to learn (higher = faster but less stable)
-    gamma = 0.9 # Discount factor
+    alpha = 0.2 # How fast to learn (higher = faster but less stable)
+    gamma = 0.95 # Discount factor (higher = value long term strat)
     epsilon = 1.0 # Start with 100% random actions
-    epsilon_min = 0.05 # Smallest allowed epsilon
-    epsilon_decay = 0.999 # Reduce exploration over time
+    epsilon_min = 0.01 # 1% chance of random action even when fully trained
+    epsilon_decay = 0.995 # Reduce exploration over time
+    
+    # Prevent infinite loops when bot can't catch complex cats
+    max_steps = 200 
+    
+    # Monitor training progress
+    success_count = 0
+    episode_steps_list = []
+    episode_rewards_list = []
 
     #############################################################################
     # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
@@ -56,9 +64,10 @@ def train_bot(cat_name, render: int = -1):
         state, _ = env.reset()
         episode_reward = 0
         done = False
+        steps = 0  
 
-        # Train until bot has not caught cat
-        while not done: 
+        # Train until bot catches cat OR reaches max steps
+        while not done and steps < max_steps: 
             # 2. Explore or exploit
             # Generate a random number between 0 and 1
             rnd = np.random.random()
@@ -79,24 +88,40 @@ def train_bot(cat_name, render: int = -1):
 
             if new_dist == 0:
                 reward = 100 # caught cat
-            elif new_dist < old_dist: # getting closer to cat
-                reward = 1
-            elif new_dist > old_dist: # getting further from cat
-                reward = -1
-            else: 
-                reward = -0.1 
+            elif new_dist < old_dist:
+                reward = 2.0 + (old_dist - new_dist) * 0.5 # Closer = base reward + proportional bonus
+            elif new_dist > old_dist:
+                reward = -2.0 - (new_dist - old_dist) * 0.5 # Farther = base penalty + proportional penalty
+            else:
+                reward = -0.5 # Same distance = small penalty to encourage progress
+            
+            reward -= 0.01 # Time penalty to encourage faster catches
 
             episode_reward += reward
 
-            # 5. Update Update Q(s,a)
+            # 5. Update Q(s,a) using Q-learning formula
             q_table[state][action] += alpha * (
                 reward + gamma * np.max(q_table[new_state]) - q_table[state][action])
             
             # Update the current state
             state = new_state
+            steps += 1
 
-        # Update epsilon
+        # Track episode metrics
+        episode_steps_list.append(steps)
+        episode_rewards_list.append(episode_reward)
+        if terminated:
+            success_count += 1
+        
+        # Update epsilon 
         epsilon = max(epsilon * epsilon_decay, epsilon_min)
+        
+        # Print progress every 500 episodes
+        if ep % 500 == 0:
+            avg_steps = np.mean(episode_steps_list[-100:])
+            avg_reward = np.mean(episode_rewards_list[-100:])
+            success_rate = success_count / ep
+            print(f"Episode {ep}/{episodes} | Avg Steps: {avg_steps:.1f} | Avg Reward: {avg_reward:.1f} | Success: {success_rate:.1%} | Epsilon: {epsilon:.3f}")
 
         #############################################################################
         # END OF YOUR CODE. DO NOT MODIFY ANYTHING BEYOND THIS LINE.                #
