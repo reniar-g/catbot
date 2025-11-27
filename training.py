@@ -95,17 +95,6 @@ def train_bot(cat_name, render: int = -1):
             else:
                 reward = -0.5 # Same distance = small penalty to encourage progress
             
-            # Corner bonus: Reward trapping cat in corners or edges (for evasive cats)
-            cat_r = (new_state % 100) // 10
-            cat_c = new_state % 10
-            
-            # Cat in corner (for trapping)
-            if (cat_r == 0 or cat_r == 7) and (cat_c == 0 or cat_c == 7):
-                reward += 1.5
-            # Cat on edge (for limiting escape)
-            elif cat_r == 0 or cat_r == 7 or cat_c == 0 or cat_c == 7:
-                reward += 0.5
-            
             reward -= 0.01 # Time penalty to encourage faster catches
 
             episode_reward += reward
