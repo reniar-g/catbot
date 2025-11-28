@@ -271,7 +271,6 @@ class TrainerCat(Cat):
         # 4. Test different learning algorithms
         return
 
-
 #######################################
 # END OF CAT BEHAVIOR IMPLEMENTATIONS #
 #######################################
@@ -325,9 +324,6 @@ class CatChaseEnv(gym.Env):
             "squiddyboi": SquiddyboiCat,
             "trainer": TrainerCat
         }
-        # Add custom cats from customcats.py
-        from customcats import cat_types as custom_cat_types
-        cat_types.update(custom_cat_types)
         if cat_type not in cat_types:
             raise ValueError(f"Unknown cat type: {cat_type}. Available types: {list(cat_types.keys())}")
         
