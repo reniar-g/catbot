@@ -60,6 +60,18 @@ def train_bot(cat_name, render: int = -1):
     #############################################################################
     
     for ep in range(1, episodes + 1):
+
+        ##############################################################################
+        # TODO: IMPLEMENT THE Q-LEARNING TRAINING LOOP HERE.                         #
+        ##############################################################################
+        # Hint: These are the general steps you must implement for each episode.     #
+        # 1. Reset the environment to start a new episode.                           #
+        # 2. Decide whether to explore or exploit.                                   #
+        # 3. Take the action and observe the next state.                             #
+        # 4. Since this environment doesn't give rewards, compute reward manually    #
+        # 5. Update the Q-table accordingly based on agent's rewards.                #
+        ##############################################################################
+
         # 1. Reset environment to start a new episode
         state, _ = env.reset()
         episode_reward = 0
