@@ -20,7 +20,7 @@ CatBot/
 
 Recommended: create a project-specific virtual environment and install dependencies.
 
-PowerShell (Windows):
+PowerShell:
 
 ```powershell
 # clone project
@@ -53,11 +53,11 @@ python bot.py --cat paotsin --render -1
 
 Controls (when using play.py):
 
-- ↑ Move up
-- ↓ Move down
-- ← Move left
-- → Move right
-- Q Quit game
+- ↑ - Move up
+- ↓ - Move down
+- ← - Move left
+- → - Move right
+- Q - Quit game
 
 ## Features
 
@@ -76,7 +76,7 @@ The trainer implements a dense reward scheme (computed in `training.py`) to acce
 - **Time penalty:** `-0.01` per timestep
 - **Time penalty:** `-0.01` per timestep
 
-## Evaluation & Reproducibility
+## Evaluation
 
 - Training is fixed to **5,000 episodes** as required by the project specification.
 - During final evaluation the bot is given a maximum of **60 moves** per scenario; the provided playback in `bot.py` uses `max_steps=60` when running the final policy.
