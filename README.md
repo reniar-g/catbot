@@ -22,7 +22,7 @@ Recommended: create a project-specific virtual environment and install dependenc
 
 PowerShell (Windows):
 
-```
+```powershell
 # clone project
 git clone https://github.com/reniar-g/CatBot.git
 cd catbot
