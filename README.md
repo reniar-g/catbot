@@ -1,4 +1,4 @@
-# CSINTSY MCO3 - Catbot
+# Catbot
 
 Compact OpenAI Gym-style environment demonstrating tabular Q-learning on an 8×8 grid where an agent learns to catch cats with different behaviors.
 
