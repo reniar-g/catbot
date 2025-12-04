@@ -63,7 +63,18 @@ Controls (when using play.py):
 
 - Custom Gym-compatible environment (`cat_env.py`) implementing an 8×8 grid world and multiple cat behaviors
 - Tabular Q-learning trainer (`training.py`) with a compact Q-table keyed by encoded agent/cat positions
-- Built-in cats: `batmeow`, `mittens`, `paotsin`, `peekaboo`, `squiddyboi` and a `trainer` cat for testing
+- Built-in cats:
+  - `batmeow`
+  - `mittens`
+  - `paotsin`
+  - `peekaboo`
+  - `squiddyboi`
+  - `spidercat`
+  - `cheddar`
+  - `pumpkinpie`
+  - `milky`
+  - `taro`
+  - `trainer` (customizable cat for experiments)
 
 ## Reward shaping
 

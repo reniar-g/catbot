@@ -6,7 +6,7 @@ from utility import play_q_table
 def main():
     parser = argparse.ArgumentParser(description='Train and play Cat Chase bot')
     parser.add_argument('--cat', 
-                       choices=['mittens', 'batmeow', 'paotsin', 'peekaboo', 'squiddyboi', 'trainer'],
+                       choices=['mittens', 'batmeow', 'paotsin', 'peekaboo', 'squiddyboi', 'trainer', 'spidercat', 'cheddar', 'pumpkinpie', 'milky', 'taro'],
                        default='batmeow',
                        help='Type of cat to train against (default: mittens)')
     parser.add_argument('--render', 

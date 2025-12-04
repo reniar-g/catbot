@@ -234,6 +234,328 @@ class SquiddyboiCat(Cat):
         self.pos[0] = new_r
         self.pos[1] = new_c
 
+class SpiderCat(Cat):
+    def _get_sprite_path(self) -> str:
+        return "images/spidercat-dp.png"
+    
+    def move(self) -> None:
+        # Check if player is on same row or column BEFORE they moved
+        same_row_before = (self.pos[0] == self.prev_player_pos[0])
+        same_col_before = (self.pos[1] == self.prev_player_pos[1])
+        
+        if (same_row_before or same_col_before) and self.last_player_action is not None:
+            # Check if player TRIED to move away from the cat
+            # Actions: 0=Up, 1=Down, 2=Left, 3=Right
+            player_tried_to_move_away = False
+            
+            if same_row_before:
+                # Check if player tried to move horizontally away
+                if self.prev_player_pos[1] > self.pos[1]:  # Player was to the right
+                    if self.last_player_action == 3:  # Tried to move right (away)
+                        player_tried_to_move_away = True
+            
+            if player_tried_to_move_away:
+                # Move closer to the player
+                dr = 0
+                dc = 0
+                
+                if self.player_pos[0] > self.pos[0]:
+                    dr = 1
+                elif self.player_pos[0] < self.pos[0]:
+                    dr = -1
+                
+                if self.player_pos[1] > self.pos[1]:
+                    dc = 1
+                elif self.player_pos[1] < self.pos[1]:
+                    dc = -1
+                
+                new_r = min(max(0, self.pos[0] + dr), self.grid_size - 1)
+                new_c = min(max(0, self.pos[1] + dc), self.grid_size - 1)
+                self.pos[0] = new_r
+                self.pos[1] = new_c
+                return
+        
+        # Otherwise, pick a random square that is NOT adjacent to the player
+        dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        random.shuffle(dirs)
+        
+        for d in dirs:
+            new_r = min(max(0, self.pos[0] + d[0]), self.grid_size - 1)
+            new_c = min(max(0, self.pos[1] + d[1]), self.grid_size - 1)
+            
+            # Check if this position is NOT adjacent to the player
+            distance_to_player = abs(new_r - self.player_pos[0]) + abs(new_c - self.player_pos[1])
+            
+            if distance_to_player > 1:
+                self.pos[0] = new_r
+                self.pos[1] = new_c
+                return
+        
+        # If no non-adjacent move is available, stay in place
+        return
+
+class CheddarCat(Cat):
+    def __init__(self, grid_size: int, tile_size: int):
+        super().__init__(grid_size, tile_size)
+        self.altered_state = False
+    
+    def _get_sprite_path(self) -> str:
+        return "images/cheddar-dp.png"
+    
+    def reset(self, pos: np.ndarray) -> None:
+        super().reset(pos)
+        self.altered_state = False
+    
+    def move(self) -> None:
+        # Check if player tried to move down while on the lower edge
+        if self.last_player_action == 1 and self.prev_player_pos[0] == self.grid_size - 1:
+            self.altered_state = True
+        
+        # Teleport to the mirror version of the player's position
+        # Flip both horizontally and vertically
+        mirrored_row = self.grid_size - 1 - self.player_pos[0]
+        mirrored_col = self.grid_size - 1 - self.player_pos[1]
+        
+        if self.altered_state:
+            # Add +1 vertical offset, unless supposed to be on lower edge
+            if mirrored_row < self.grid_size - 1:
+                mirrored_row += 1
+        
+        self.pos[0] = mirrored_row
+        self.pos[1] = mirrored_col
+
+class PumpkinPieCat(Cat):
+    def __init__(self, grid_size: int, tile_size: int):
+        super().__init__(grid_size, tile_size)
+        self.corner_counter = 0
+        self.stuck_in_center = False
+    
+    def _get_sprite_path(self) -> str:
+        return "images/pumpkinpie-dp.png"
+    
+    def reset(self, pos: np.ndarray) -> None:
+        super().reset(pos)
+        self.corner_counter = 0
+        self.stuck_in_center = False
+    
+    def move(self) -> None:
+        # If stuck in center, stay there forever
+        if self.stuck_in_center:
+            return
+        
+        # Get all corners
+        corners = [
+            (0, 0),
+            (0, self.grid_size - 1),
+            (self.grid_size - 1, 0),
+            (self.grid_size - 1, self.grid_size - 1)
+        ]
+        
+        # Check if cat is currently at a corner
+        cat_at_corner = tuple(self.pos) in corners
+        
+        # Check if player moved to opposite corner
+        if cat_at_corner:
+            cat_corner = tuple(self.pos)
+            opposite_corner = (self.grid_size - 1 - cat_corner[0], self.grid_size - 1 - cat_corner[1])
+            
+            if tuple(self.player_pos) == opposite_corner:
+                # Player moved to opposite corner
+                self.corner_counter += 1
+                
+                if self.corner_counter >= 5:
+                    # Jump to center and stay there forever
+                    center_row = self.grid_size // 2
+                    center_col = self.grid_size // 2
+                    self.pos[0] = center_row
+                    self.pos[1] = center_col
+                    self.stuck_in_center = True
+                    return
+                else:
+                    # Teleport to a random different corner (not where player is and not current position)
+                    available_corners = [c for c in corners if c != opposite_corner and c != cat_corner]
+                    new_corner = random.choice(available_corners)
+                    self.pos[0] = new_corner[0]
+                    self.pos[1] = new_corner[1]
+                    return
+        
+        # Check if player moved within 3 spaces (Manhattan distance <= 3)
+        distance = abs(self.pos[0] - self.player_pos[0]) + abs(self.pos[1] - self.player_pos[1])
+        if distance <= 3:
+            # Teleport to a random corner
+            new_corner = random.choice(corners)
+            self.pos[0] = new_corner[0]
+            self.pos[1] = new_corner[1]
+            return
+        
+        # Otherwise, stay in place
+        return
+
+class MilkyCat(Cat):
+    def __init__(self, grid_size: int, tile_size: int):
+        super().__init__(grid_size, tile_size)
+        self.hidden_counter = 0
+        self.state_changed = False
+    
+    def _get_sprite_path(self) -> str:
+        return "images/milky-dp.png"
+    
+    def reset(self, pos: np.ndarray) -> None:
+        super().reset(pos)
+        self.hidden_counter = 0
+        self.state_changed = False
+    
+    def move(self) -> None:
+        # Check if player is on same row and moved down
+        if self.pos[0] == self.prev_player_pos[0] and self.last_player_action == 1:
+            self.hidden_counter += 1
+            if self.hidden_counter >= 3:
+                self.state_changed = True
+        
+        # Generate all possible positions
+        all_positions = []
+        for r in range(self.grid_size):
+            for c in range(self.grid_size):
+                all_positions.append((r, c))
+        
+        if self.state_changed and random.random() < 0.5:
+            # 50% chance to teleport adjacent to the player
+            adjacent_positions = []
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                new_r = self.player_pos[0] + dr
+                new_c = self.player_pos[1] + dc
+                if 0 <= new_r < self.grid_size and 0 <= new_c < self.grid_size:
+                    adjacent_positions.append((new_r, new_c))
+            
+            if adjacent_positions:
+                new_pos = random.choice(adjacent_positions)
+                self.pos[0] = new_pos[0]
+                self.pos[1] = new_pos[1]
+                return
+        
+        # Teleport to a random position NOT adjacent to the player
+        non_adjacent_positions = []
+        for pos in all_positions:
+            distance = abs(pos[0] - self.player_pos[0]) + abs(pos[1] - self.player_pos[1])
+            if distance > 1:
+                non_adjacent_positions.append(pos)
+        
+        if non_adjacent_positions:
+            new_pos = random.choice(non_adjacent_positions)
+            self.pos[0] = new_pos[0]
+            self.pos[1] = new_pos[1]
+        # If no non-adjacent positions available, stay in place
+
+class TaroCat(Cat):
+    def __init__(self, grid_size: int, tile_size: int):
+        super().__init__(grid_size, tile_size)
+        self.mimic_counter = 0
+        self.state_changed = False
+    
+    def _get_sprite_path(self) -> str:
+        return "images/taro-dp.png"
+    
+    def reset(self, pos: np.ndarray) -> None:
+        super().reset(pos)
+        self.mimic_counter = 0
+        self.state_changed = False
+    
+    def move(self) -> None:
+        # If state changed, always move closer to player (takes priority)
+        if self.state_changed:
+            # Get all adjacent cells
+            adjacent_moves = []
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                new_r = self.pos[0] + dr
+                new_c = self.pos[1] + dc
+                
+                # Check if within bounds
+                if 0 <= new_r < self.grid_size and 0 <= new_c < self.grid_size:
+                    adjacent_moves.append((new_r, new_c, dr, dc))
+            
+            # Find the closest distance and collect all moves with that distance
+            best_distance = float('inf')
+            best_moves = []
+            
+            for new_r, new_c, dr, dc in adjacent_moves:
+                distance = abs(new_r - self.player_pos[0]) + abs(new_c - self.player_pos[1])
+                if distance < best_distance:
+                    best_distance = distance
+                    best_moves = [(new_r, new_c)]
+                elif distance == best_distance:
+                    best_moves.append((new_r, new_c))
+            
+            # Randomize if there's a tie
+            if best_moves:
+                best_move = random.choice(best_moves)
+                self.pos[0] = best_move[0]
+                self.pos[1] = best_move[1]
+            return
+        
+        # Check for mimic condition: exactly 3 spaces away on same row/column, player moved perpendicularly
+        if self.last_player_action is not None:
+            same_row_before = (self.pos[0] == self.prev_player_pos[0])
+            same_col_before = (self.pos[1] == self.prev_player_pos[1])
+            distance_before = abs(self.pos[0] - self.prev_player_pos[0]) + abs(self.pos[1] - self.prev_player_pos[1])
+            
+            # Check if player actually moved (didn't bump into wall)
+            player_actually_moved = not np.array_equal(self.prev_player_pos, self.player_pos)
+            
+            if distance_before == 4 and player_actually_moved:
+                moved_perpendicularly = False
+                
+                # If on same column, check if player moved left or right
+                if same_col_before and self.last_player_action in [2, 3]:
+                    moved_perpendicularly = True
+                
+                # If on same row, check if player moved up or down
+                if same_row_before and self.last_player_action in [0, 1]:
+                    moved_perpendicularly = True
+                
+                if moved_perpendicularly:
+                    # Mimic the player's movement
+                    self.mimic_counter += 1
+                    if self.mimic_counter >= 4:
+                        self.state_changed = True
+                    
+                    # Apply the same action to Taro
+                    if self.last_player_action == 0:  # Up
+                        new_r = max(0, self.pos[0] - 1)
+                        self.pos[0] = new_r
+                    elif self.last_player_action == 1:  # Down
+                        new_r = min(self.grid_size - 1, self.pos[0] + 1)
+                        self.pos[0] = new_r
+                    elif self.last_player_action == 2:  # Left
+                        new_c = max(0, self.pos[1] - 1)
+                        self.pos[1] = new_c
+                    elif self.last_player_action == 3:  # Right
+                        new_c = min(self.grid_size - 1, self.pos[1] + 1)
+                        self.pos[1] = new_c
+                    return
+        
+        # Get all adjacent cells
+        adjacent_moves = []
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            new_r = self.pos[0] + dr
+            new_c = self.pos[1] + dc
+            
+            # Check if within bounds
+            if 0 <= new_r < self.grid_size and 0 <= new_c < self.grid_size:
+                adjacent_moves.append((new_r, new_c, dr, dc))
+        
+        # Choose an adjacent cell that is NOT adjacent to the player
+        non_adjacent_moves = []
+        for new_r, new_c, dr, dc in adjacent_moves:
+            distance_to_player = abs(new_r - self.player_pos[0]) + abs(new_c - self.player_pos[1])
+            if distance_to_player > 1:
+                non_adjacent_moves.append((new_r, new_c))
+        
+        if non_adjacent_moves:
+            new_pos = random.choice(non_adjacent_moves)
+            self.pos[0] = new_pos[0]
+            self.pos[1] = new_pos[1]
+        # If no non-adjacent moves available, stay in place
+
 #####################################
 # TRAINER CAT IMPLEMENTATION        #
 #####################################
@@ -322,6 +644,11 @@ class CatChaseEnv(gym.Env):
             "paotsin": PaotsinCat,
             "peekaboo": PeekabooCat,
             "squiddyboi": SquiddyboiCat,
+            "spidercat": SpiderCat,
+            "cheddar": CheddarCat,
+            "pumpkinpie": PumpkinPieCat,
+            "milky": MilkyCat,
+            "taro": TaroCat,
             "trainer": TrainerCat
         }
         if cat_type not in cat_types:
