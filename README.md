@@ -24,7 +24,7 @@ PowerShell:
 
 ```powershell
 # clone project
-git clone https://github.com/reniar-g/CatBot.git
+git clone https://github.com/rdgonzaga/CatBot.git
 cd catbot
 
 # create venv (from project root)
